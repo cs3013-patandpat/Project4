@@ -19,13 +19,20 @@ void setupEmptyPage(int i){
 	pageTable[i].occupied = 0 ;
 }
 
-int main(){
-	pageCount = 0;
+vAddr setupPage(int i, int memoryType, int memoryLoc){
+	pageTable[i].physicalAddress = memoryLoc;
+	pageTable[i].memoryType = memoryType;
+	pageTable[i].occupied = 1;
 	
-	int i;
-	for(i = 0 ; i < 1000 ; i++)
-		setupEmptyPage(i);
+	if(memoryType == RAM)
+		ram[pageTable[i].physicalAddress] = pageTable[i].physicalAddress;
+	else if(memoryType == SSD)
+		ssd[pageTable[i].physicalAddress-25] = pageTable[i].physicalAddress;
+	else if(memoryType == HD)
+		hd[pageTable[i].physicalAddress-125] = pageTable[i].physicalAddress;
 	
+	pageCount++;
+	return i;
 }
 
 int findFreeMemoryLoc(int memoryType) {
@@ -110,22 +117,6 @@ void evict(int memoryType){
 		printf("Could not evict");
 }
 
-vAddr setupPage(int i, int memoryType, int memoryLoc){
-	pageTable[i].physicalAddress = memoryLoc;
-	pageTable[i].memoryType = memoryType;
-	pageTable[i].occupied = 1;
-	
-	if(memoryType == RAM)
-		ram[pageTable[i].physicalAddress] = pageTable[i].physicalAddress;
-	else if(memoryType == SSD)
-		ssd[pageTable[i].physicalAddress-25] = pageTable[i].physicalAddress;
-	else if(memoryType == HD)
-		hd[pageTable[i].physicalAddress-125] = pageTable[i].physicalAddress;
-	
-	pageCount++;
-	return i;
-}
-
 vAddr create_page(){
 	int freeSpace = findFreeMemoryLoc(RAM_SIZE);
 
@@ -194,3 +185,12 @@ void store_value(vAddr address, int *value){
 void free_page(vAddr address){
 	setupEmptyPage(address);
 }
+
+int main(){
+	pageCount = 0;
+	
+	int i;
+	for(i = 0 ; i < 1000 ; i++)
+		setupEmptyPage(i);
+}
+
