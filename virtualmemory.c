@@ -138,7 +138,7 @@ void evict(int memoryType){
 
 vAddr create_page(){
 	if(DEBUG) printf("Creating page.\n");
-	int freeSpace = findFreeMemoryLoc(RAM_SIZE);
+	int freeSpace = findFreeMemoryLoc(RAM);
 
 	if(pageCount >= 1000){
 		printf("Hard drive is full.\n") ;
@@ -146,7 +146,7 @@ vAddr create_page(){
 	}
 	else if(freeSpace == -1){
 		evict(RAM);
-		freeSpace = findFreeMemoryLoc(RAM_SIZE);
+		freeSpace = findFreeMemoryLoc(RAM);
 	}
 	int i ;
 	for(i = 0 ; i < 1000 ; i++)
