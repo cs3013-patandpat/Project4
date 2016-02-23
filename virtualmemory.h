@@ -17,7 +17,7 @@ typedef signed short vAddr;
 typedef struct TableEntry {
 	vAddr virtualAddress;
 	int physicalAddress;
-	int memoryType;]
+	int memoryType;
 	int occupied;
 } TableEntry;
 
