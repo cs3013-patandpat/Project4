@@ -23,6 +23,6 @@ typedef struct TableEntry {
 	int physicalAddress;
 	int memoryType;]
 	int occupied;
-} table_entry;
+} TableEntry;
 
 #endif
