@@ -43,6 +43,7 @@ int findFreeMemoryLoc(int memoryType) {
 	if(DEBUG) printf("Searching for free memory location in level: %d\n",memoryType);
 	int i ;
 	if(memoryType == RAM){
+		if(DEBUG) printf("Entering RAM\n");
 		int freeMemoryLocs[RAM_SIZE];
 		for(i=0;i<RAM_SIZE;i++)
 			freeMemoryLocs[i]=1;
@@ -58,13 +59,14 @@ int findFreeMemoryLoc(int memoryType) {
 		return -1;
 	}
 	else if(memoryType == SSD){
+		if(DEBUG) printf("Entering SSD\n");
 		int freeMemoryLocs[SSD_SIZE];
-		for(i=0;i<SSD_SIZE;++i)
+		for(i=0;i<SSD_SIZE;i++)
 			freeMemoryLocs[i]=1;
-		for(i=0;i<HD_SIZE;++i)
+		for(i=0;i<HD_SIZE;i++)
 			if(pageTable[i].memoryType == SSD)
 				freeMemoryLocs[pageTable[i].physicalAddress-25] = 0;
-		for(i=0;i<SSD_SIZE;++i)
+		for(i=0;i<SSD_SIZE;i++)
 			if(freeMemoryLocs[i] == 1){
 				if(DEBUG) printf("Memory found in SSD.\n");
 				return i ;
@@ -73,15 +75,16 @@ int findFreeMemoryLoc(int memoryType) {
 		return -1 ;
 	}
 	else if(memoryType == HD){
+		if(DEBUG) printf("Entering HD\n");
 		int freeMemoryLocs[HD_SIZE];
-		for(i=0;i<HD_SIZE;++i)
+		for(i=0;i<HD_SIZE;i++)
 			freeMemoryLocs[i]=1;
-		for(i=0;i<HD_SIZE;++i)
+		for(i=0;i<HD_SIZE;i++)
 			if(pageTable[i].memoryType == HD)
 				freeMemoryLocs[pageTable[i].physicalAddress-125] = 0;
-		for(i=0;i<HD_SIZE;++i)
+		for(i=0;i<HD_SIZE;i++)
 			if(freeMemoryLocs[i] == 1) {
-				if(DEBUG) printf("Memory found in HD.");
+				if(DEBUG) printf("Memory found in HD.\n");
 				return i ;
 			}
 		if(DEBUG) printf("No memory found in HD.\n");
@@ -106,7 +109,7 @@ void evict(int memoryType){
 	else if(memoryType == SSD){
 		freeSpace = findFreeMemoryLoc(HD);
 		if(freeSpace == -1){
-			printf("Hard drive is full. Lossless eviction not possible.");
+			printf("Hard drive is full. Lossless eviction not possible.\n");
 			return;
 		}
 	}
@@ -114,7 +117,7 @@ void evict(int memoryType){
 	int i;
 	for(i = 0; i < 1000; i++){
 		if(pageTable[i].memoryType == RAM && memoryType == RAM){
-			if(DEBUG) printf("Eviction successful.");
+			if(DEBUG) printf("Eviction successful.\n");
 			ssd[freeSpace] = ram[pageTable[i].physicalAddress];
 			setupPage(i,SSD,freeSpace + 25);
 			usleep(RAM_ACCESS);
@@ -122,7 +125,7 @@ void evict(int memoryType){
 			return;
 		}
 		else if(pageTable[i].memoryType == SSD && memoryType == SSD){
-			if(DEBUG) printf("Eviction successful.");
+			if(DEBUG) printf("Eviction successful.\n");
 			hd[freeSpace] = ssd[pageTable[i].physicalAddress-25];
 			setupPage(i,HD,freeSpace + 125);
 			usleep(SSD_ACCESS);
