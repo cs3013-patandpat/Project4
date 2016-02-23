@@ -231,9 +231,12 @@ void memoryMaxer() {
 	vAddr indexes[1000];
 	int i;
 	for (i = 0; i < 1000; ++i) {
-		if(DEBUG) printf("\n");
+		if(DEBUG) printf("\n\n----------\n");
+		
 		indexes[i] = create_page();
+		if(DEBUG) printf("----------\n");
 		int *value = get_value(indexes[i]);
+		if(DEBUG) printf("----------\n");
 		*value = (i * 3);
 		store_value(indexes[i], value);
 	}
