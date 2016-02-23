@@ -53,11 +53,9 @@ int findFreeMemoryLoc(int memoryType) {
 		for(i=0;i<RAM_SIZE;i++)
 			if(freeMemoryLocs[i] == 1){
 				if(DEBUG) printf("Memory found in RAM.\n");
-				free(freeMemoryLocs);
 				return i ;
 			}
 		if(DEBUG) printf("No memory found in RAM.\n");
-		free(freeMemoryLocs);
 		return -1;
 	}
 	else if(memoryType == SSD){
