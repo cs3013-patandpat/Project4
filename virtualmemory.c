@@ -119,7 +119,6 @@ void evict(int memoryType){
 		if(pageTable[i].memoryType == RAM && memoryType == RAM){
 			if(DEBUG) printf("Eviction successful.\n");
 			ssd[freeSpace] = ram[pageTable[i].physicalAddress];
-			pageTable[i].memoryType = SSD;
 			setupPage(i,SSD,freeSpace + 25);
 			usleep(RAM_ACCESS);
 			ram[pageTable[i].physicalAddress] = -1;
@@ -128,7 +127,6 @@ void evict(int memoryType){
 		else if(pageTable[i].memoryType == SSD && memoryType == SSD){
 			if(DEBUG) printf("Eviction successful.\n");
 			hd[freeSpace] = ssd[pageTable[i].physicalAddress-25];
-			pageTable[i].memoryType = HD;
 			setupPage(i,HD,freeSpace + 125);
 			usleep(SSD_ACCESS);
 			ssd[pageTable[i].physicalAddress-25] = -1;
