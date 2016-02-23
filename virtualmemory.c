@@ -211,13 +211,14 @@ void free_page(vAddr address){
 
 void memoryMaxer() {
 	vAddr indexes[1000];
-	for (int i = 0; i < 1000; ++i) {
+	int i;
+	for (i = 0; i < 1000; ++i) {
 		indexes[i] = create_page();
 		int *value = get_value(indexes[i]);
 		*value = (i * 3);
 		store_value(indexes[i], value);
 	}
-	for (int i = 0; i < 1000; ++i) {
+	for (i = 0; i < 1000; ++i) {
 		free_page(indexes[i]);
 	}
 }
