@@ -128,7 +128,7 @@ vAddr create_page(){
 	}
 	int i ;
 	for(i = 0 ; i < 1000 ; i++)
-		if(pageTable[i].occupied == 0 && pageTable[i].physical_address == -1)
+		if(pageTable[i].occupied == 0 && pageTable[i].physicalAddress == -1)
 			return setupPage(i,RAM,freeSpace);
 	return -1;
 }
