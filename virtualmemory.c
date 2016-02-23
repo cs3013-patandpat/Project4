@@ -5,9 +5,6 @@
 #include <unistd.h>
 #include "virtualmemory.h"
 
-// Function prototypes
-int findFree(int size);
-
 // Variable definitions
 TableEntry pageTable[1000];
 int ram[25];
@@ -15,7 +12,7 @@ int ssd[100];
 int hd[1000];
 int pageCount;
 
-void setupPage(int i){
+void setupEmptyPage(int i){
 	pageTable[i].virtualAddress = i;
 	pageTable[i].physicalAddress = -1 ;
 	pageTable[i].memoryType= -1 ;
@@ -27,7 +24,7 @@ int main(){
 	
 	int i;
 	for(i = 0 ; i < 1000 ; i++)
-		setupPage(i);
+		setupEmptyPage(i);
 	
 }
 
@@ -195,5 +192,5 @@ void store_value(vAddr address, int *value){
 }
 
 void free_page(vAddr address){
-	setupPage(address);
+	setupEmptyPage(address);
 }
