@@ -53,9 +53,11 @@ int findFreeMemoryLoc(int memoryType) {
 		for(i=0;i<RAM_SIZE;i++)
 			if(freeMemoryLocs[i] == 1){
 				if(DEBUG) printf("Memory found in RAM.\n");
+				free(freeMemoryLocs);
 				return i ;
 			}
 		if(DEBUG) printf("No memory found in RAM.\n");
+		free(freeMemoryLocs);
 		return -1;
 	}
 	else if(memoryType == SSD){
@@ -102,7 +104,7 @@ void evict(int memoryType){
 	if(memoryType == RAM){
 		freeSpace = findFreeMemoryLoc(SSD);
 		if(freeSpace == -1){
-			if(DEBUG) printf("No space available in level: %d\n",memoryType);
+			if(DEBUG) printf("No space available in level: %d\n",memoryType+1);
 			evict(SSD);
 		}
 	}
@@ -119,17 +121,17 @@ void evict(int memoryType){
 		if(pageTable[i].memoryType == RAM && memoryType == RAM){
 			if(DEBUG) printf("Eviction successful.\n");
 			ssd[freeSpace] = ram[pageTable[i].physicalAddress];
+			ram[pageTable[i].physicalAddress] = -1;
 			setupPage(i,SSD,freeSpace + 25);
 			usleep(RAM_ACCESS);
-			ram[pageTable[i].physicalAddress] = -1;
 			return;
 		}
 		else if(pageTable[i].memoryType == SSD && memoryType == SSD){
 			if(DEBUG) printf("Eviction successful.\n");
 			hd[freeSpace] = ssd[pageTable[i].physicalAddress-25];
+			ssd[pageTable[i].physicalAddress-25] = -1;
 			setupPage(i,HD,freeSpace + 125);
 			usleep(SSD_ACCESS);
-			ssd[pageTable[i].physicalAddress-25] = -1;
 			return;
 		}
 	}
@@ -152,7 +154,7 @@ vAddr create_page(){
 		return;
 	}
 	else if(freeSpace == -1){
-		if(DEBUG) printf("There is no free space in RAM for this page.");
+		if(DEBUG) printf("There is no free space in RAM for this page.\n");
 		evict(RAM);
 		freeSpace = findFreeMemoryLoc(RAM);
 	}
