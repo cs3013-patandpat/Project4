@@ -22,7 +22,7 @@ typedef struct TableEntry {
 } TableEntry;
 
 vAddr create_page();
-u_int32_t *get_value(vAddr address);
+int *get_value(vAddr address);
 void store_value(vAddr address, int *value);
 void free_page(vAddr address);
 

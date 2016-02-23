@@ -99,7 +99,7 @@ void evict(int memoryType){
 			ssd[freeSpace] = ram[pageTable[i].physicalAddress];
 			setupPage(i,SSD,freeSpace + 25);
 			usleep(RAM_ACCESS);
-			ram[pageTable[i].physical_address] = -1;
+			ram[pageTable[i].physicalAddress] = -1;
 			return;
 		}
 		else if(pageTable[i].memoryType == SSD && memoryType == SSD){
@@ -120,15 +120,15 @@ void evict(int memoryType){
 vAddr create_page(){
 	int freeSpace = findFreeMemoryLoc(RAM_SIZE);
 
-	if(page_count >= 1000)
-		printf("NOT ENOUGH MEMORY\n") ;
+	if(pageCount >= 1000)
+		printf("Not enough memory.\n") ;
 	else if(freeSpace == -1){
 		evict(RAM);
 		freeSpace = findFreeMemoryLoc(RAM_SIZE);
 	}
 	int i ;
 	for(i = 0 ; i < 1000 ; i++)
-		if(page_table[i].occupied == 0 && page_table[i].physical_address == -1)
+		if(pageTable[i].occupied == 0 && pageTable[i].physical_address == -1)
 			return setupPage(i,RAM,freeSpace);
 	return -1;
 }
@@ -159,7 +159,7 @@ void handlePageFault(vAddr address){
 }
 
 int *get_value(vAddr address){	
-	if(page_table[address].occupied == 0){
+	if(pageTable[address].occupied == 0){
 		printf("Page doesn't exist.\n");
 		return NULL;
 	}
