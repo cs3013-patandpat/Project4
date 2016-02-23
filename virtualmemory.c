@@ -51,10 +51,10 @@ int findFreeMemoryLoc(int memoryType) {
 				freeMemoryLocs[pageTable[i].physicalAddress] = 0;
 		for(i=0;i<RAM_SIZE;i++)
 			if(freeMemoryLocs[i] == 1){
-				if(DEBUG) printf("Memory found in RAM.");
+				if(DEBUG) printf("Memory found in RAM.\n");
 				return i ;
 			}
-
+		if(DEBUG) printf("No memory found in RAM.\n");
 		return -1;
 	}
 	else if(memoryType == SSD){
@@ -63,13 +63,13 @@ int findFreeMemoryLoc(int memoryType) {
 			freeMemoryLocs[i]=1;
 		for(i=0;i<HD_SIZE;++i)
 			if(pageTable[i].memoryType == SSD)
-				freeMemoryLocs[pageTable[i].physicalAddress-25]=0;
+				freeMemoryLocs[pageTable[i].physicalAddress-25] = 0;
 		for(i=0;i<SSD_SIZE;++i)
 			if(freeMemoryLocs[i] == 1){
-				if(DEBUG) printf("Memory found in SSD.");
+				if(DEBUG) printf("Memory found in SSD.\n");
 				return i ;
 			}
-				
+		if(DEBUG) printf("No memory found in SSD.\n");
 		return -1 ;
 	}
 	else if(memoryType == HD){
@@ -84,9 +84,13 @@ int findFreeMemoryLoc(int memoryType) {
 				if(DEBUG) printf("Memory found in HD.");
 				return i ;
 			}
-				
+		if(DEBUG) printf("No memory found in HD.\n");
 		return -1 ;
 	}
+	else{
+		if(DEBUG) printf("Undefined memory type: %d\n",memoryType);
+	}
+	return -1;
 }
 
 void evict(int memoryType){
@@ -184,7 +188,7 @@ int *get_value(vAddr address){
 	if(DEBUG) printf("Searching for value at address: %d\n", address);
 	if(pageTable[address].occupied == 0){
 		printf("Page doesn't exist for this address.\n");
-		return NULL;
+		return ;
 	}
 	else{
 		int physicalAddress = pageTable[address].physicalAddress;
