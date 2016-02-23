@@ -181,20 +181,24 @@ void handlePageFault(vAddr address){
 }
 
 int *get_value(vAddr address){	
-	if(DEBUG) printf("Searching for address: %d\n", address);
+	if(DEBUG) printf("Searching for value at address: %d\n", address);
 	if(pageTable[address].occupied == 0){
-		printf("Page doesn't exist.\n");
+		printf("Page doesn't exist for this address.\n");
 		return NULL;
 	}
 	else{
 		int physicalAddress = pageTable[address].physicalAddress;
 		int memoryType = pageTable[address].memoryType;
 
-		if(memoryType == RAM)
+		if(memoryType == RAM){
+			printf("Value found: %d\n",ram[physicalAddress]);
 			return &ram[physicalAddress];
+		}
 		else{
 			handlePageFault(address) ;
-			return get_value(address) ;
+			int *value = get_value(address);
+			printf("Value found: %d\n",*value);
+			return value;
 		}
 	}	
 	return NULL;
