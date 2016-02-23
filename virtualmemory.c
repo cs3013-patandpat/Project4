@@ -5,14 +5,14 @@
 #include <unistd.h>
 #include "virtualmemory.h"
 
-#define DEBUG 1 //True
-
 // Variable definitions
 TableEntry pageTable[1000];
 int ram[25];
 int ssd[100];
 int hd[1000];
 int pageCount;
+
+int DEBUG;
 
 void setupEmptyPage(int i){
 	if(DEBUG) printf("Emptying page: %d\n",i);
@@ -250,7 +250,14 @@ void memoryMaxer() {
 	}
 }
 
-int main(){
+int main(int argc, char *argv[] ){
+	if(argc == 2){
+		if(atoi(argv[1]) == 1)
+			DEBUG = 1;
+		else
+			DEBUG = 0;
+	}
+	
 	pageCount = 0;
 	
 	int i;
