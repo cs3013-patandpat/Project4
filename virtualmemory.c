@@ -9,9 +9,9 @@ int findFree(int size);
 
 // Variable definitions
 TableEntry pageTable[1000];
-u_int32_t ram[25];
-u_int32_t ssd[100];
-u_int32_t hd[1000];
+int ram[25];
+int ssd[100];
+int hd[1000];
 int pageCount;
 
 void setupPage(int i){
@@ -186,7 +186,7 @@ int *get_value(vAddr address){
 	return NULL;
 }
 
-void store_value(vAddr address, u_int32_t *value){
+void store_value(vAddr address, int *value){
 	int* valueOfAddress = get_value(address);
 	*valueOfAddress = *value;
 }
