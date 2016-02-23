@@ -210,13 +210,13 @@ int *get_value(vAddr address){
 		int memoryType = pageTable[address].memoryType;
 
 		if(memoryType == RAM){
-			printf("Value found: %d\n",ram[physicalAddress]);
+			if(DEBUG) printf("Value found: %d\n",ram[physicalAddress]);
 			return &ram[physicalAddress];
 		}
 		else{
 			handlePageFault(address) ;
 			int *value = get_value(address);
-			printf("Value found: %d\n",*value);
+			if(DEBUG) printf("Value found: %d\n",*value);
 			return value;
 		}
 	}	
