@@ -182,7 +182,7 @@ void handlePageFault(vAddr address){
 			evict(SSD);
 			freeSpace = findFreeMemoryLoc(SSD);
 			if(freeSpace == -1){
-				print("[SEVERE] Page fault error\n");
+				printf("[SEVERE] Page fault error\n");
 				return;
 			}
 		}
