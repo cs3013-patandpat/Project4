@@ -13,11 +13,6 @@
 #define SSD_ACCESS  (100 * 1000)
 #define HD_ACCESS   (2500 * 1000)
 
-vAddr create_page();
-u_int32_t *get_value(vAddr address);
-void store_value(vAddr address, u_int32_t *value);
-void free_page(vAddr address);
-
 typedef vAddr unsigned short 
 typedef struct TableEntry {
 	vAddr virtualAddress;
@@ -25,5 +20,10 @@ typedef struct TableEntry {
 	int memoryType;]
 	int occupied;
 } TableEntry;
+
+vAddr create_page();
+u_int32_t *get_value(vAddr address);
+void store_value(vAddr address, u_int32_t *value);
+void free_page(vAddr address);
 
 #endif
