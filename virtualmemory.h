@@ -13,7 +13,7 @@
 #define SSD_ACCESS  (100 * 1000)
 #define HD_ACCESS   (2500 * 1000)
 
-typedef vAddr unsigned short 
+typedef signed short vAddr
 typedef struct TableEntry {
 	vAddr virtualAddress;
 	int physicalAddress;
