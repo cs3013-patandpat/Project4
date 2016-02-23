@@ -160,10 +160,12 @@ vAddr create_page(){
 }
 
 void handlePageFault(vAddr address){
+	if(DEBUG) printf("Handling page fault: %d\n",address);
 	int physicalAddress = pageTable[address].physicalAddress;
 	int memoryType = pageTable[address].memoryType;
 	
 	if(memoryType == SSD){
+		if(DEBUG) printf("Bumping memory cell from SSD -> RAM\n");
 		int freeSpace = findFreeMemoryLoc(RAM);
 		int value = ssd[physicalAddress-25];
 		if(freeSpace == -1){
@@ -173,11 +175,16 @@ void handlePageFault(vAddr address){
 		ram[freeSpace] = value;
 	}
 	else if(memoryType == HD){
+		if(DEBUG) printf("Bumping memory cell from HD -> SSD\n");
 		int freeSpace = findFreeMemoryLoc(SSD);
 		int value = hd[physicalAddress-125];
 		if(freeSpace == -1){
-			printf("Critical Page Fault Error");
-			return;
+			evict(SSD);
+			freeSpace = findFreeMemoryLoc(SSD);
+			if(freeSpace == -1){
+				print("[SEVERE] Page fault error\n");
+				return;
+			}
 		}
 		ssd[freeSpace] = value;
 		handlePageFault(address);
