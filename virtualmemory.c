@@ -198,7 +198,7 @@ int *get_value(vAddr address){
 	if(DEBUG) printf("Searching for value at address: %d\n", address);
 	if(pageTable[address].occupied == 0){
 		printf("Page doesn't exist for this address.\n");
-		return ;
+		return;
 	}
 	else{
 		int physicalAddress = pageTable[address].physicalAddress;
