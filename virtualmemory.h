@@ -18,6 +18,7 @@ u_int32_t *get_value(vAddr address);
 void store_value(vAddr address, u_int32_t *value);
 void free_page(vAddr address);
 
+typedef vAddr unsigned short 
 typedef struct TableEntry {
 	vAddr virtualAddress;
 	int physicalAddress;
