@@ -1,5 +1,6 @@
 // Author: Patrick Lebold & Patrick Polley
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include "virtualmemory.h"
@@ -23,6 +24,8 @@ void setupPage(int i){
 
 int main(){
 	pageCount = 0;
+	
+	int i;
 	for(i = 0 ; i < 1000 ; i++)
 		setupPage(i);
 	
