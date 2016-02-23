@@ -1,12 +1,12 @@
 # Patrick Lebold & Patrick Polley
 
-all: vm
+all: virtualmemory
 
-vm: vm.o
-	gcc vm.o -o vm
+virtualmemory: virtualmemory.o
+	gcc virtualmemory.o -o virtualmemory
 
-vm.o: virtualmemory.c
+virtualmemory.o: virtualmemory.c
 	gcc -c virtualmemory.c virtualmemory.h
 
 clean:
-	rm -f vm  *.o *~
+	rm -f virtualmemory *.o *~
