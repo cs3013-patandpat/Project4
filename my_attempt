@@ -1,0 +1,380 @@
+// Author: Patrick Lebold & Patrick Polley
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#define RAM_SIZE 	25
+#define SSD_SIZE	100
+#define HD_SIZE 	1000
+
+#define RAMWAIT 10000
+#define SSDWAIT 100000
+#define HDWAIT 2500000
+
+#define RAM 1
+#define SSD 2
+
+typedef signed short vAddr;
+
+vAddr create_page();
+u_int32_t *get_value(vAddr address);
+void store_value(vAddr address, int *value);
+void free_page(vAddr address);
+void evictOptionOne(int memtype);
+void evictOptionTwo(int memtype);
+void evictOptionThree(int memtype);
+
+vAddr ram[25];
+int ram_storage = 0;
+int first_added_to_ram = 0;
+int ram_r[25];
+vAddr ssd[100];
+int ssd_storage = 0;
+int first_added_to_ssd = 0;
+vAddr hd[1000];
+int hd_storage = 0;
+int pageCount = 0;
+vAddr lastAddress = 0;
+
+int evictType = 0;
+
+u_int32_t pageTable[1000];
+
+void evict(int memType, int manner){
+	if(manner == 0) evictOptionOne(memType);
+	if(manner == 1) evictOptionTwo(memType);
+	if(manner == 2) evictOptionThree(memType);
+}
+
+void evictOptionOne(int memType){
+	vAddr temp;
+	int i;
+	//random
+	if(memType == RAM){
+		printf("Evicting from RAM.\n");
+		int evictPos = rand() % 25;
+		usleep(RAMWAIT);
+		temp = ram[evictPos];
+		usleep(RAMWAIT);
+		ram[evictPos] = -1;
+		if(ssd_storage >= 100) evictOptionOne(SSD);
+		for(i = 0; ssd[i] != -1; i++){usleep(SSDWAIT);}
+		usleep(SSDWAIT);
+		ssd[i] = temp;
+		ssd_storage++;
+		ram_storage--;
+	}
+	if(memType == SSD){
+		printf("Evicting from SSD.\n");
+		int evictPos = rand() % 100;
+		usleep(SSDWAIT);
+		temp = ssd[evictPos];
+		usleep(SSDWAIT);
+		ssd[evictPos] = -1;
+		for(i = 0; hd[i] != -1; i++){usleep(HDWAIT);}
+		usleep(HDWAIT);
+		hd[i] = temp;
+		hd_storage++;
+		ssd_storage--;
+	}
+}
+
+void evictOptionTwo(int memType){
+	int i;
+	vAddr temp;
+	//last added first eliminated
+	if(memType == RAM){
+		printf("Evicting from RAM.\n");
+		usleep(RAMWAIT);
+		temp = ram[first_added_to_ram];
+		usleep(RAMWAIT);
+		ram[first_added_to_ram] = -1;
+		first_added_to_ram++;
+		if(first_added_to_ram == 25) first_added_to_ram = 0;
+		if(ssd_storage >= 100) evictOptionTwo(SSD);
+		for(i = 0; ssd[i] != -1; i++){usleep(SSDWAIT);}
+		usleep(SSDWAIT);
+		ssd[i] = temp;
+		ssd_storage++;
+		ram_storage--;
+	}
+	if(memType == SSD){
+		printf("Evicting from SSD.\n");
+		usleep(SSDWAIT);
+		temp = ssd[first_added_to_ssd];
+		usleep(SSDWAIT);
+		ssd[first_added_to_ssd] = -1;
+		first_added_to_ssd++;
+		if(first_added_to_ssd == 100) first_added_to_ssd = 0;
+		for(i = 0; hd[i] != -1; i++){usleep(HDWAIT);}
+		usleep(HDWAIT);
+		hd[i] = temp;
+		hd_storage++;
+		ssd_storage--;
+	}
+}
+
+void evictOptionThree(int memType){
+	int i;
+	int j;
+	vAddr temp;
+	//Second Chance Algorithm
+	if(memType == RAM){
+		printf("Evicting from RAM.\n");
+		for(i = first_added_to_ram; ram_r[i] != 0 && j < 25; j++){
+			usleep(RAMWAIT);
+			usleep(RAMWAIT);
+			ram_r[i] = 0;
+			i++;
+			if(i == 25) i = 0;
+		}
+		if(ram_r[i] == 0){//found one that hasn't been used
+			usleep(RAMWAIT);
+			usleep(RAMWAIT);
+			temp = ram[i];
+			first_added_to_ram = i;
+			usleep(RAMWAIT);
+			ram[i] = -1;
+			if(ssd_storage >= 100) evictOptionTwo(SSD);
+			for(i = 0; ssd[i] != -1; i++){usleep(SSDWAIT);}
+			usleep(SSDWAIT);
+			ssd[i] = temp;
+			ssd_storage++;
+			ram_storage--;
+		}else{
+			//all the pages were used. revert back to using the last one that was added
+			evictOptionTwo(RAM);
+		}
+		
+	}
+	if(memType == SSD){
+		evictOptionTwo(SSD);//there is no concept of second chance in SSD
+	}
+}
+
+vAddr create_page(){
+	int i;
+	vAddr new_address;
+
+	printf("Creating page.\n");
+
+	if(pageCount >= 1000){
+		printf("Hard drive is full.\n") ;
+		return -1;
+	}
+
+	ram_storage++;
+	pageCount++;
+	if(ram_storage > 24) ram_storage = 25;
+
+	for(i = 0; pageTable[i] != -1; i++){}
+	pageTable[i] = 0;//set up the page with an arbitrary value
+	new_address = i;
+	//printf("number of pages in RAM is #%d.\n",ram_storage);
+	//printf("number of pages in ssd is #%d.\n",ssd_storage);
+	//printf("number of pages in hd is #%d.\n",hd_storage);
+	if(ram_storage <= 24){
+		
+		for(i = 0; ram[i] != -1; i++){usleep(RAMWAIT);}
+		//printf("storing in location # %d.\n",i);
+		usleep(RAMWAIT);
+		ram[i] = new_address;
+		usleep(RAMWAIT);
+		ram_r[i] = 0;
+		return new_address;
+	}
+	else{
+		evict(RAM,evictType);
+		for(i = 0; ram[i] != -1; i++){usleep(RAMWAIT);}
+		usleep(RAMWAIT);
+		ram[i] = new_address;
+		usleep(RAMWAIT);
+		ram_r[i] = 0;
+		usleep(RAMWAIT);
+		return ram[i];
+	}
+	
+	return -1;
+}
+
+
+u_int32_t* get_value(vAddr address){
+	printf("getting value.\n");
+	int i;
+	//first check ram
+	for(i = 0; i < 25; i++){
+		usleep(RAMWAIT);
+		if(ram[i] == address){
+			usleep(RAMWAIT);
+			ram_r[i] = 1;
+			return &pageTable[address];
+		}
+	}
+	//then check ssd
+	for(i = 0; i < 100; i++){
+		usleep(SSDWAIT);
+		if(ssd[i] == address){
+			usleep(SSDWAIT);
+			vAddr temp = ssd[i];
+			usleep(SSDWAIT);
+			ssd[i] = -1;
+			if(ram_storage >= 25) evict(RAM,evictType);
+			for(i = 0; ram[i] != -1; i++){usleep(RAMWAIT);}
+			usleep(RAMWAIT);
+			ram[i] = temp;
+			usleep(RAMWAIT);
+			ram_r[i] = 0;
+			return &pageTable[address]; 
+		}
+	}
+	//and finally check hd
+	for(i = 0; i < 1000; i++){
+		usleep(HDWAIT);
+		if(hd[i] == address){
+			usleep(HDWAIT);
+			vAddr temp = hd[i];
+			usleep(HDWAIT);
+			hd[i] = -1;
+			if(ram_storage >= 25) evict(RAM,evictType);
+			for(i = 0; ram[i] != -1; i++){usleep(RAMWAIT);}
+			usleep(RAMWAIT);
+			ram[i] = temp;
+			usleep(RAMWAIT);
+			ram_r[i] = 0;
+			return &pageTable[address];
+		}
+	}
+	//if you reach this point, the address pointed to doesn't exist
+	return NULL;
+}
+
+void store_value(vAddr address, int *value){
+	printf("storing value.\n");
+	int i;
+	pageTable[address] = *value;
+	//now bring the page into ram
+	//if it's in ram, we're done
+	for(i = 0; i < 25; i++){
+		usleep(RAMWAIT);
+		if(ram[i] == address){
+			usleep(RAMWAIT);
+			ram_r[i] = 1;
+			return;
+		}
+	}
+	//then check if it's in ssd
+	for(i = 0; i < 100; i++){
+		usleep(SSDWAIT);
+		if(ssd[i] == address){
+		usleep(SSDWAIT);
+			ssd[i] = -1;
+			if(ram_storage >= 25) evict(RAM,evictType);
+			for(i = 0; ram[i] != -1; i++){usleep(RAMWAIT);}
+			usleep(RAMWAIT);
+			ram[i] = address;
+			usleep(RAMWAIT);
+			ram_r[i] = 0;
+			return;
+		}
+	}
+	//and finally check hd
+	for(i = 0; i < 1000; i++){
+		usleep(HDWAIT);
+		if(hd[i] == address){
+			hd[i] = -1;
+			usleep(HDWAIT);
+			if(ram_storage >= 25) evict(RAM,evictType);
+			for(i = 0; ram[i] != -1; i++){usleep(RAMWAIT);}
+			usleep(RAMWAIT);
+			ram[i] = address;
+			usleep(RAMWAIT);
+			ram_r[i] = 0;
+			return;
+		}
+	}
+}
+
+void free_page(vAddr address){
+	printf("freeing page.\n");
+	int i;
+	//first reset the page table entry
+	pageTable[address] = -1;
+	//then check if the entry is in ram
+	for(i = 0; i < 25; i++){
+		usleep(RAMWAIT);
+		if(ram[i] == address){
+			usleep(RAMWAIT);
+			ram[i] = -1;
+			usleep(RAMWAIT);
+			ram_r[i] = 0;
+			return;
+		}
+	}
+	//check if it's in ssd
+	for(i = 0; i < 100; i++){
+		usleep(SSDWAIT);
+		if(ssd[i] == address){
+			usleep(SSDWAIT);
+			ssd[i] = -1;
+			return;
+		}
+	}
+	//check if it's in hd
+	for(i = 0; i < 1000; i++){
+		usleep(HDWAIT);
+		if(hd[i] == address){
+			hd[i] = -1;
+			usleep(HDWAIT);
+			return;
+		}
+	}
+}
+
+void memoryMaxer() {
+	vAddr indexes[1000];
+	int i;
+	for (i = 0; i < 1000; ++i) {
+		printf("adding page # %d.\n",i);
+		indexes[i] = create_page();
+		int *value = get_value(indexes[i]);
+		*value = (i * 3);
+		store_value(indexes[i], value);
+	}
+	for (i = 0; i < 1000; ++i) {
+		free_page(indexes[i]);
+	}
+}
+
+int main(int argc, char *argv[] ){
+	int i;
+	time_t t;  
+	//Create random seed
+	srand((unsigned) time(&t));
+
+	if(argc == 2){
+		evictType = atoi(argv[1]);
+		if(evictType > 2 || evictType < 0) evictType = rand()%3;
+	}
+	if(evictType == 0) printf("Using random evictions.\n");
+	if(evictType == 1) printf("Using FIFO evictions.\n");
+	if(evictType == 2) printf("Using second chance evictions.\n");
+	usleep(1000000);
+
+	for(i = 0; i < 25; i++){
+		ram[i] = -1;
+		ram_r[i] = 0;
+	}
+	for(i = 0; i < 100; i++){
+		ssd[i] = -1;
+	}
+	for(i = 0; i < 1000; i++){
+		hd[i] = -1;
+		pageTable[i] = -1;
+	}
+	
+	pageCount = 0;
+		
+	memoryMaxer();
+}
+

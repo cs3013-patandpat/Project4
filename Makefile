@@ -1,12 +1,8 @@
-# Patrick Lebold & Patrick Polley
+all: my_attempt
 
-all: virtualmemory
-
-virtualmemory: virtualmemory.o
-	gcc virtualmemory.o -o virtualmemory
-
-virtualmemory.o: virtualmemory.c
-	gcc -c virtualmemory.c virtualmemory.h
+my_attempt: my_attempt.c
+	gcc -o my_attempt my_attempt.c
 
 clean:
-	rm -f virtualmemory *.o *~
+	-rm my_attempt
+	-rm Makefile~

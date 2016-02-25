@@ -12,6 +12,12 @@ int ssd[100];
 int hd[1000];
 int pageCount;
 
+typedef struct TableEntry {
+	vAddr virtualAddress;
+	int memoryType;
+	int occupied;
+} TableEntry;
+
 int DEBUG;
 
 void setupEmptyPage(int i){
