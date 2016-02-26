@@ -13,7 +13,7 @@ int DEBUG;
 
 // Variable definitions
 TableEntry pageTable[1000];
-int ram[25];
+int ram[RAM_SIZE];
 int ssd[100];
 int hd[1000];
 int pageCount = 0;
@@ -44,11 +44,11 @@ vAddr setupPage(int i, int memoryType, int memoryLoc){
 	}
 	else if(memoryType == SSD){
 		usleep(SSD_ACCESS);
-		ssd[pageTable[i].physicalAddress-25] = pageTable[i].physicalAddress;
+		ssd[pageTable[i].physicalAddress-RAM_SIZE] = pageTable[i].physicalAddress;
 	}
 	else if(memoryType == HD){
 		usleep(HD_ACCESS);
-		hd[pageTable[i].physicalAddress-125] = pageTable[i].physicalAddress;
+		hd[pageTable[i].physicalAddress-(RAM_SIZE + SSD_SIZE)] = pageTable[i].physicalAddress;
 	}
 	return i;
 }
@@ -87,7 +87,7 @@ int findFreeMemoryLoc(int memoryType) {
 			freeMemoryLocs[i]=1;
 		for(i=0;i<HD_SIZE;i++)
 			if(pageTable[i].memoryType == SSD)
-				freeMemoryLocs[pageTable[i].physicalAddress-25] = 0;
+				freeMemoryLocs[pageTable[i].physicalAddress-RAM_SIZE] = 0;
 		for(i=0;i<SSD_SIZE;i++)
 			if(freeMemoryLocs[i] == 1){
 				if(DEBUG) printf("Memory found in SSD.\n");
@@ -103,7 +103,7 @@ int findFreeMemoryLoc(int memoryType) {
 			freeMemoryLocs[i]=1;
 		for(i=0;i<HD_SIZE;i++)
 			if(pageTable[i].memoryType == HD)
-				freeMemoryLocs[pageTable[i].physicalAddress-125] = 0;
+				freeMemoryLocs[pageTable[i].physicalAddress-(RAM_SIZE + SSD_SIZE)] = 0;
 		for(i=0;i<HD_SIZE;i++)
 			if(freeMemoryLocs[i] == 1) {
 				if(DEBUG) printf("Memory found in HD.\n");
@@ -129,7 +129,7 @@ void evictOne(int memoryType, int freeSpace){
 				ssd[freeSpace] = ram[pageTable[i].physicalAddress];
 				usleep(RAM_ACCESS);
 				ram[pageTable[i].physicalAddress] = -1;
-				setupPage(i,SSD,freeSpace + 25);
+				setupPage(i,SSD,freeSpace + RAM_SIZE);
 				return;
 			}
 		}
@@ -140,10 +140,10 @@ void evictOne(int memoryType, int freeSpace){
 			if(pageTable[i].memoryType == SSD){
 				if(DEBUG) printf("Eviction successful.\n");
 				usleep(HD_ACCESS + SSD_ACCESS);
-				hd[freeSpace] = ssd[pageTable[i].physicalAddress-25];
+				hd[freeSpace] = ssd[pageTable[i].physicalAddress-RAM_SIZE];
 				usleep(SSD_ACCESS);
-				ssd[pageTable[i].physicalAddress-25] = -1;
-				setupPage(i,HD,freeSpace + 125);	
+				ssd[pageTable[i].physicalAddress-RAM_SIZE] = -1;
+				setupPage(i,HD,freeSpace + (RAM_SIZE + SSD_SIZE));	
 				return;
 			}
 		}
@@ -155,8 +155,8 @@ void evictTwo(int memoryType, int freeSpace){
 	int i;
 	if(memoryType == RAM){
 		int ram_found = 0;
-		TableEntry pagesInRam[25];
-		int tableEntry[25];
+		TableEntry pagesInRam[RAM_SIZE];
+		int tableEntry[RAM_SIZE];
 		for(i = 0; i < 1000; i++){
 			if(pageTable[i].memoryType == RAM){
 				pagesInRam[ram_found] = pageTable[i];
@@ -171,7 +171,7 @@ void evictTwo(int memoryType, int freeSpace){
 		ssd[freeSpace] = ram[pagesInRam[evictThis].physicalAddress];
 		usleep(RAM_ACCESS);
 		ram[pagesInRam[evictThis].physicalAddress] = -1;
-		setupPage(tableEntry[evictThis],SSD,freeSpace + 25);
+		setupPage(tableEntry[evictThis],SSD,freeSpace + RAM_SIZE);
 		return;
 
 	}
@@ -190,10 +190,10 @@ void evictTwo(int memoryType, int freeSpace){
 		int evictThis = rand() %(ssd_found+1);
 		if(DEBUG) printf("Eviction successful.\n");
 		//usleep(SSD_ACCESS + HD_ACCESS);
-		hd[freeSpace] = ssd[pagesInSSD[evictThis].physicalAddress - 25];
+		hd[freeSpace] = ssd[pagesInSSD[evictThis].physicalAddress - RAM_SIZE];
 		//usleep(SSD_ACCESS);
-		ssd[pagesInSSD[evictThis].physicalAddress - 25] = -1;
-		setupPage(tableEntry[evictThis],HD,freeSpace + 125);
+		ssd[pagesInSSD[evictThis].physicalAddress - RAM_SIZE] = -1;
+		setupPage(tableEntry[evictThis],HD,freeSpace + (RAM_SIZE + SSD_SIZE));
 		return;
 	}
 }
@@ -212,7 +212,7 @@ void evictThree(int memoryType, int freeSpace){
 					ssd[freeSpace] = ram[pageTable[i].physicalAddress];
 					usleep(RAM_ACCESS);
 					ram[pageTable[i].physicalAddress] = -1;
-					setupPage(i,SSD,freeSpace + 25);
+					setupPage(i,SSD,freeSpace + RAM_SIZE);
 					return;
 				}else pageTable[i].r = 0;
 			}
@@ -226,10 +226,10 @@ void evictThree(int memoryType, int freeSpace){
 			if(pageTable[i].memoryType == SSD){
 				if(DEBUG) printf("Eviction successful.\n");
 				usleep(HD_ACCESS + SSD_ACCESS);
-				hd[freeSpace] = ssd[pageTable[i].physicalAddress-25];
+				hd[freeSpace] = ssd[pageTable[i].physicalAddress-RAM_SIZE];
 				usleep(SSD_ACCESS);
-				ssd[pageTable[i].physicalAddress-25] = -1;
-				setupPage(i,HD,freeSpace + 125);	
+				ssd[pageTable[i].physicalAddress-RAM_SIZE] = -1;
+				setupPage(i,HD,freeSpace + (RAM_SIZE + SSD_SIZE));	
 				return;
 			}
 		}
@@ -269,7 +269,7 @@ void handlePageFault(vAddr address){
 		if(DEBUG) printf("Bumping memory cell from SSD -> RAM\n");
 		int freeSpace = findFreeMemoryLoc(RAM);
 		usleep(SSD_ACCESS);
-		int value = ssd[physicalAddress-25];
+		int value = ssd[physicalAddress-RAM_SIZE];
 		if(freeSpace == -1){
 			evict(RAM);
 			freeSpace = findFreeMemoryLoc(RAM);
@@ -283,7 +283,7 @@ void handlePageFault(vAddr address){
 		if(DEBUG) printf("Bumping memory cell from HD -> SSD\n");
 		int freeSpace = findFreeMemoryLoc(SSD);
 		usleep(HD_ACCESS);
-		int value = hd[physicalAddress-125];
+		int value = hd[physicalAddress-(RAM_SIZE + SSD_SIZE)];
 		if(freeSpace == -1){
 			evict(SSD);
 			freeSpace = findFreeMemoryLoc(SSD);
@@ -294,7 +294,7 @@ void handlePageFault(vAddr address){
 		}
 		usleep(SSD_ACCESS);
 		ssd[freeSpace] = value;
-		pageTable[address].physicalAddress = freeSpace + 25;
+		pageTable[address].physicalAddress = freeSpace + RAM_SIZE;
 		pageTable[address].memoryType = SSD;
 		handlePageFault(address);
 	}
@@ -328,7 +328,7 @@ int *get_value_safe(vAddr address){
 	if(DEBUG) printf("Searching for value at address: %d\n", address);
 	if(pageTable[address].occupied == 0){
 		printf("Page doesn't exist for this address.\n");
-		return;
+		return -1;
 	}
 	else{
 		int physicalAddress = pageTable[address].physicalAddress;
