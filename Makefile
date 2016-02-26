@@ -1,8 +1,10 @@
-all: my_attempt
+all: virtualmemory
 
-my_attempt: my_attempt.c
-	gcc -o my_attempt my_attempt.c
+virtualmemory: virtualmemory.o
+	gcc virtualmemory.o -pthread -o virtualmemory
+
+virtualmemory.o: virtualmemory.c
+	gcc -c virtualmemory.c virtualmemory.h
 
 clean:
-	-rm my_attempt
-	-rm Makefile~
+	rm -f virtualmemory *.o *~

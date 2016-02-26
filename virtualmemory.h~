@@ -21,7 +21,7 @@ typedef struct TableEntry {
 	int physicalAddress;
 	int memoryType;
 	int occupied;
-	pthread_mutex_t lock;
+	pthread_mutex_lock lock;
 	pthread_cond_t condition_variable;
 } TableEntry;
 

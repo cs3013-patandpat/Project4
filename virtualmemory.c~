@@ -173,7 +173,6 @@ void handlePageFault(vAddr address){
 	else if(memoryType == HD){
 		if(DEBUG) printf("Bumping memory cell from HD -> SSD\n");
 		int freeSpace = findFreeMemoryLoc(SSD);
-		usleep(HD_ACCESS);
 		int value = hd[physicalAddress-125];
 		if(freeSpace == -1){
 			evict(SSD);
