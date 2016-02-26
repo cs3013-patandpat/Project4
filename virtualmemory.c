@@ -17,12 +17,15 @@ int hd[1000];
 int pageCount = 0;
 
 int evictType = 0;
+int lastChecked = 0;//used for second chance to get a circular array
+int prevVal;
 
 void setupEmptyPage(int i){
 	if(DEBUG) printf("Emptying page: %d\n",i);
 	pageTable[i].physicalAddress = -1 ;
 	pageTable[i].memoryType= -1 ;
 	pageTable[i].occupied = 0;
+	pageTable[i].r = 0;
 	pthread_mutex_init(&pageTable[i].lock,NULL);
 	//pthread_cond_init(&pageTable[i].condition_variable,NULL);
 }
@@ -56,16 +59,22 @@ int findFreeMemoryLoc(int memoryType) {
 	if(memoryType == RAM){
 		if(DEBUG) printf("Entering RAM\n");
 		int freeMemoryLocs[RAM_SIZE];
-		for(i=0;i<RAM_SIZE;i++)
+		for(i=0;i<RAM_SIZE;i++){
 			freeMemoryLocs[i]=1;
-		for(i=0;i<HD_SIZE;i++)
-			if(pageTable[i].memoryType == RAM)
+		}
+		for(i=0;i<HD_SIZE;i++){
+			if(pageTable[i].memoryType == RAM){
+				prevVal = i;
 				freeMemoryLocs[pageTable[i].physicalAddress] = 0;
-		for(i=0;i<RAM_SIZE;i++)
+				i = prevVal;
+			}
+		}
+		for(i=0;i<RAM_SIZE;i++){
 			if(freeMemoryLocs[i] == 1){
 				if(DEBUG) printf("Memory found in RAM.\n");
 				return i ;
 			}
+		}
 		if(DEBUG) printf("No memory found in RAM.\n");
 		return -1;
 	}
@@ -107,8 +116,125 @@ int findFreeMemoryLoc(int memoryType) {
 	return -1;
 }
 
-void evict(int memoryType){
+void evictOne(int memoryType, int freeSpace){
 	//find the first slot of memory where you can evict
+	int i;
+	if(memoryType == RAM){
+		for(i = 0; i < 1000; i++){
+			if(pageTable[i].memoryType == RAM){
+				if(DEBUG) printf("Eviction successful.\n");
+				usleep(SSD_ACCESS + RAM_ACCESS);
+				ssd[freeSpace] = ram[pageTable[i].physicalAddress];
+				usleep(RAM_ACCESS);
+				ram[pageTable[i].physicalAddress] = -1;
+				setupPage(i,SSD,freeSpace + 25);
+				return;
+			}
+		}
+
+	}
+	else if (memoryType == SSD){
+		for(i = 0; i < 1000; i++){
+			if(pageTable[i].memoryType == SSD){
+				if(DEBUG) printf("Eviction successful.\n");
+				usleep(HD_ACCESS + SSD_ACCESS);
+				hd[freeSpace] = ssd[pageTable[i].physicalAddress-25];
+				usleep(SSD_ACCESS);
+				ssd[pageTable[i].physicalAddress-25] = -1;
+				setupPage(i,HD,freeSpace + 125);	
+				return;
+			}
+		}
+	}
+}
+
+void evictTwo(int memoryType, int freeSpace){
+	//find a random slot of memory to evict
+	int i;
+	if(memoryType == RAM){
+		int ram_found = 0;
+		TableEntry pagesInRam[25];
+		int tableEntry[25];
+		for(i = 0; i < 1000; i++){
+			if(pageTable[i].memoryType == RAM){
+				pagesInRam[ram_found] = pageTable[i];
+				tableEntry[ram_found] = i;
+				ram_found++;
+			}
+		}
+		if(ram_found == 0) return;//no ram was found
+		int evictThis = rand() %(ram_found+1);
+		if(DEBUG) printf("Eviction successful.\n");
+		usleep(SSD_ACCESS + RAM_ACCESS);
+		ssd[freeSpace] = ram[pagesInRam[evictThis].physicalAddress];
+		usleep(RAM_ACCESS);
+		ram[pagesInRam[evictThis].physicalAddress] = -1;
+		setupPage(tableEntry[evictThis],SSD,freeSpace + 25);
+		return;
+
+	}
+	else if (memoryType == SSD){
+		int ssd_found = 0;
+		TableEntry pagesInSSD[100];
+		int tableEntry[100];
+		for(i = 0; i < 1000; i++){
+			if(pageTable[i].memoryType == SSD){
+				pagesInSSD[ssd_found] = pageTable[i];
+				tableEntry[ssd_found] = i;
+				ssd_found++;
+			}
+		}
+		if(ssd_found == 0) return;//no SSD was found
+		int evictThis = rand() %(ssd_found+1);
+		if(DEBUG) printf("Eviction successful.\n");
+		//usleep(SSD_ACCESS + HD_ACCESS);
+		hd[freeSpace] = ssd[pagesInSSD[evictThis].physicalAddress - 25];
+		//usleep(SSD_ACCESS);
+		ssd[pagesInSSD[evictThis].physicalAddress - 25] = -1;
+		setupPage(tableEntry[evictThis],HD,freeSpace + 125);
+		return;
+	}
+}
+
+void evictThree(int memoryType, int freeSpace){
+	//second chance eviction
+	int i;
+	int j = 0;
+	if(memoryType == RAM){
+		for(i = lastChecked; j < 1000; j++){
+			if(pageTable[i].memoryType == RAM){
+				if(pageTable[i].r == 0){
+					lastChecked = i + 1;
+					if(DEBUG) printf("Eviction successful.\n");
+					usleep(SSD_ACCESS + RAM_ACCESS);
+					ssd[freeSpace] = ram[pageTable[i].physicalAddress];
+					usleep(RAM_ACCESS);
+					ram[pageTable[i].physicalAddress] = -1;
+					setupPage(i,SSD,freeSpace + 25);
+					return;
+				}else pageTable[i].r = 0;
+			}
+			i++;
+			if(i == 1000) i = 0;
+		}
+
+	}
+	else if (memoryType == SSD){
+		for(i = 0; i < 1000; i++){
+			if(pageTable[i].memoryType == SSD){
+				if(DEBUG) printf("Eviction successful.\n");
+				usleep(HD_ACCESS + SSD_ACCESS);
+				hd[freeSpace] = ssd[pageTable[i].physicalAddress-25];
+				usleep(SSD_ACCESS);
+				ssd[pageTable[i].physicalAddress-25] = -1;
+				setupPage(i,HD,freeSpace + 125);	
+				return;
+			}
+		}
+	}
+}
+
+void evict(int memoryType){
 	if(DEBUG) printf("Evicting memory in level: %d\n",memoryType);
 	int freeSpace;
 	if(memoryType == RAM){
@@ -126,29 +252,10 @@ void evict(int memoryType){
 			return;
 		}
 	}
-	
-	int i;
-	for(i = 0; i < 1000; i++){
-		if(pageTable[i].memoryType == RAM && memoryType == RAM){
-			if(DEBUG) printf("Eviction successful.\n");
-			usleep(SSD_ACCESS + RAM_ACCESS);
-			ssd[freeSpace] = ram[pageTable[i].physicalAddress];
-			usleep(RAM_ACCESS);
-			ram[pageTable[i].physicalAddress] = -1;
-			setupPage(i,SSD,freeSpace + 25);
-			return;
-		}
-		else if(pageTable[i].memoryType == SSD && memoryType == SSD){
-			if(DEBUG) printf("Eviction successful.\n");
-			usleep(HD_ACCESS + SSD_ACCESS);
-			hd[freeSpace] = ssd[pageTable[i].physicalAddress-25];
-			usleep(SSD_ACCESS);
-			ssd[pageTable[i].physicalAddress-25] = -1;
-			setupPage(i,HD,freeSpace + 125);
-			
-			return;
-		}
-	}
+	if(evictType == 0) evictOne(memoryType, freeSpace);//first page found is evicted
+	else if(evictType == 1) evictTwo(memoryType, freeSpace);//randomly pick a page to evict
+	else if(evictType == 2) evictThree(memoryType, freeSpace);//use second chance algorithm to pick a page to evict
+	else evictThree(memoryType, freeSpace);//default to second chance
 }
 
 void handlePageFault(vAddr address){
@@ -225,6 +332,7 @@ int *get_value_safe(vAddr address){
 	else{
 		int physicalAddress = pageTable[address].physicalAddress;
 		int memoryType = pageTable[address].memoryType;
+		pageTable[address].r = 1;
 
 		if(memoryType == RAM){
 			if(DEBUG) printf("Value found: %d\n",ram[physicalAddress]);
@@ -233,7 +341,7 @@ int *get_value_safe(vAddr address){
 		}
 		else{
 			handlePageFault(address) ;
-			int *value = get_value(address);
+			int *value = get_value_safe(address);
 			if(DEBUG) printf("Value found: %d\n",*value);
 			return value;
 		}
@@ -321,7 +429,7 @@ void memoryMaxer() {
 
 int main(int argc, char *argv[] ){
 	//set debug on or off
-	if(argc == 2){
+	if(argc > 1){
 		if(atoi(argv[1]) == 1)
 			DEBUG = 1;
 		else
@@ -331,8 +439,9 @@ int main(int argc, char *argv[] ){
 	if(argc == 3){
 		evictType = atoi(argv[2]);
 		if(evictType > 2 || evictType < 0) evictType = rand()%3;
-	}else evictType = rand()%3;
+	}else evictType = 0;
 	
+	printf("evicting using %d.\n",evictType);
 	
 	pageCount = 0;
 	
