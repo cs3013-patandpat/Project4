@@ -486,5 +486,6 @@ int main(int argc, char *argv[] ){
 		setupEmptyPage(i);
 		
 	memoryMaxer();
+	multithreadedHavoc();
 }
 
