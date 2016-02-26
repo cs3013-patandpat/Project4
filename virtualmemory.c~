@@ -180,7 +180,6 @@ void evictOne(int memoryType, int freeSpace){
 	}
 	else if (memoryType == SSD){
 		for(i = 0; i < 1000; i++){
-			int finished = 0;
 			while(finished == 0){
 				if(pthread_mutex_trylock(&(pageTable[i].lock)) == 0){
 					finished = 1;
