@@ -407,11 +407,36 @@ void free_page(vAddr address){
 //------------------------------
 
 void threadCall(int *threadID){
-	
+	int i;
+	for(i=0; i<300; i++){
+		int address = rand()%1000;
+		int *value = get_value(address);
+		*value = rand();
+		store_value(address, value);
+	}
 }
 
 void multithreadedHavoc(){
+	pthread_t threads[5];
+	for (i = 0; i < 1000; ++i) {
+		if(DEBUG) printf("Making page # %d.\n",i);
+		if(DEBUG) printf("Pagecount is: %d.\n",pageCount);
+		if(DEBUG) printf("\n\n----------\n");
+		
+		vAddr address = create_page();
+		if(DEBUG) printf("------------\n");
+		int *value = get_value(address);
+		if(DEBUG) printf("-------------\n");
+		*value = (i * 3);
+		store_value(address, value);
+	}
 	
+	int i;
+	for(i=0; i<5; i++){
+		int* id = malloc(sizeof(int));
+		*id = i;
+		pthread_create (&(threads[i]),NULL, (void *) &threadCall, id);
+	}
 }
 
 void memoryMaxer() {
@@ -435,7 +460,7 @@ void memoryMaxer() {
 }
 
 int main(int argc, char *argv[] ){
-	srand(
+	srand(time(NULL));
 	//set debug on or off
 	if(argc > 1){
 		if(atoi(argv[1]) == 1)
