@@ -420,6 +420,8 @@ void threadCall(int *threadID){
 
 void multithreadedHavoc(){
 	pthread_t threads[5];
+	
+	int i;
 	for (i = 0; i < 1000; ++i) {
 		if(DEBUG) printf("Making page # %d.\n",i);
 		if(DEBUG) printf("Pagecount is: %d.\n",pageCount);
@@ -433,7 +435,6 @@ void multithreadedHavoc(){
 		store_value(address, value);
 	}
 	
-	int i;
 	for(i=0; i<5; i++){
 		int* id = malloc(sizeof(int));
 		*id = i;
