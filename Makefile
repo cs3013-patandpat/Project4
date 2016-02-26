@@ -7,4 +7,4 @@ virtualmemory.o: virtualmemory.c
 	gcc -c virtualmemory.c virtualmemory.h
 
 clean:
-	rm -f virtualmemory *.o *~
+	rm -f virtualmemory *.o *~ *.gch

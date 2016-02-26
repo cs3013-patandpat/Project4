@@ -322,7 +322,6 @@ vAddr create_page(){
 	return -1;
 }
 
-
 int *get_value_safe(vAddr address){
 	if(DEBUG) printf("Searching for value at address: %d\n", address);
 	if(pageTable[address].occupied == 0){
@@ -407,6 +406,14 @@ void free_page(vAddr address){
 
 //------------------------------
 
+void threadCall(int *threadID){
+	
+}
+
+void multithreadedHavoc(){
+	
+}
+
 void memoryMaxer() {
 	vAddr indexes[1000];
 	int i;
@@ -428,6 +435,7 @@ void memoryMaxer() {
 }
 
 int main(int argc, char *argv[] ){
+	srand(
 	//set debug on or off
 	if(argc > 1){
 		if(atoi(argv[1]) == 1)
