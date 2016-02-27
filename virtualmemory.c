@@ -450,7 +450,7 @@ int *get_value_safe(vAddr address){
 
 int *get_value(vAddr address){
 	if(address < 0 || address >= 1000){
-		return NULL
+		return NULL;
 	}
 	int finished = 0;
 	int *value;
