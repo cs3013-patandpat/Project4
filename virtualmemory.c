@@ -535,6 +535,8 @@ void multithreadedHavoc(){
 		if(DEBUG) printf("\n\n----------\n");
 		
 		vAddr address = create_page();
+		if(address == -1)
+			continue;
 		if(DEBUG) printf("------------\n");
 		int *value = get_value(address);
 		if(DEBUG) printf("-------------\n");
