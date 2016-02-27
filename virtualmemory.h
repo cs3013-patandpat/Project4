@@ -11,13 +11,9 @@
 #define RAM_SIZE 	25
 #define SSD_SIZE	100
 #define HD_SIZE 	1000
-//#define RAM_ACCESS  (10 * 1000)
-//#define SSD_ACCESS  (100 * 1000)
-//#define HD_ACCESS   (2500 * 1000)
-
-#define RAM_ACCESS  1
-#define SSD_ACCESS  5
-#define HD_ACCESS   50
+#define RAM_ACCESS  (10 * 1000)
+#define SSD_ACCESS  (100 * 1000)
+#define HD_ACCESS   (2500 * 1000)
 
 typedef signed short vAddr;
 typedef struct TableEntry {

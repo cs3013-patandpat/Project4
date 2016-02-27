@@ -1,3 +1,9 @@
 To test our code, we ran two functions:
 
-	- memoryMaxer()	
+[Memory Maxer] is the function given to us in the project spec. It's important that this runs because let's be honest,
+				if our code doesn't work with the basic setup, it's just no good. 
+				
+[Multithreaded Havoc] is the function we have developed to excruciatingly test our code. This code arbitrarily retrieves,
+				modifies, creates, and frees pages in 20 different thread (each thread executes each action upwards of 300 times 
+				for a grand total of 6,000 operations. We are confident that after testing multiple times with no issues, this function,
+				through sheer brute force, tests most edge cases.
