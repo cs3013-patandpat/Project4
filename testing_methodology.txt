@@ -1,0 +1,3 @@
+To test our code, we ran two functions:
+
+	- memoryMaxer()	
