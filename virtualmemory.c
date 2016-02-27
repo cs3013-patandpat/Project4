@@ -57,7 +57,6 @@ vAddr setupPage(int i, int memoryType, int memoryLoc){
 	}
 	pthread_mutex_unlock(&(pageTable[i].lock));
 	pthread_cond_broadcast(&(pageTable[i].condition_variable));
-printf("SETUP PAGE DEBUG FINISH\n");
 	return i;
 }
 
@@ -207,7 +206,6 @@ void evictTwo(int memoryType, int freeSpace){
 	//find a random slot of memory to evict
 	int i;
 	if(memoryType == RAM){
-printf("STARTING EVICT2 RAM DEBUG\n");
 		int ram_found = 0;
 		TableEntry pagesInRam[RAM_SIZE];
 		int tableEntry[RAM_SIZE];
@@ -234,7 +232,6 @@ printf("STARTING EVICT2 RAM DEBUG\n");
 		usleep(RAM_ACCESS);
 		ram[pagesInRam[evictThis].physicalAddress] = -1;
 		setupPage(tableEntry[evictThis],SSD,freeSpace + RAM_SIZE);
-printf("EVICT TWO RAM DEBUG FINISH\n");
 	}
 	else if (memoryType == SSD){
 		int ssd_found = 0;
@@ -259,16 +256,11 @@ printf("EVICT TWO RAM DEBUG FINISH\n");
 		int evictThis = rand() %(ssd_found);
 		if(DEBUG) printf("SSD eviction successful.\n");
 		usleep(SSD_ACCESS + HD_ACCESS);
-printf("EVICT2 HD COPYING DEBUG EVICTtHIS = %d\n", evictThis);
 		hd[freeSpace] = ssd[pagesInSSD[evictThis].physicalAddress - RAM_SIZE];
-printf("EVICT2 HD COPIED DEBUG\n");
 		usleep(SSD_ACCESS);
 		ssd[pagesInSSD[evictThis].physicalAddress - RAM_SIZE] = -1;
-printf("EVICT2 SSD SETUP PAGE\n");
 		setupPage(tableEntry[evictThis],HD,freeSpace + (RAM_SIZE + SSD_SIZE));
-printf("EVICT2 SSD DEBUG FINISH\n");
 	}
-printf("EVICT2 COMPLETED\n");
 }
 
 void evictThree(int memoryType, int freeSpace){
@@ -334,33 +326,26 @@ void evict(int memoryType){
 		freeSpace = findFreeMemoryLoc(SSD);
 		if(freeSpace == -1){
 			if(DEBUG) printf("No space available in SSD. Attempting to clear space.\n");
-printf("EVICTING SSD DEBUG\n");
 			evict(SSD);
-printf("SSD EVCITED _ FINDING FREE SPACE\n");
 			freeSpace = findFreeMemoryLoc(SSD);
-printf("FREE SPACE FOUND IN SSD");
 		}
 	}
 	else if(memoryType == SSD){
 		freeSpace = findFreeMemoryLoc(HD);
 		if(freeSpace == -1){
-			printf("Hard drive is full. Lossless eviction not possible.\n");
+			if(DEBUG) printf("Hard drive is full. Lossless eviction not possible.\n");
 			return;
 		}
 	}
 	if(evictType == 0) 
 		evictOne(memoryType, freeSpace);//first page found is evicted
-	else if(evictType == 1) {
-printf("CALLING EVICT2 DEBUG MEMTYPE = %d FREESPACE = %d\n",memoryType,freeSpace);
+	else if(evictType == 1) {s
 		evictTwo(memoryType, freeSpace);//randomly pick a page to evict
-printf("ENDED EVICT2 DEBUG\n");
 }
 	else if(evictType == 2) 
 		evictThree(memoryType, freeSpace);//use second chance algorithm to pick a page to evict
 	else 
 		evictThree(memoryType, freeSpace);//default to second chance
-
-printf("END EVICT BASE DEBUG\n");
 }
 
 void handlePageFault(vAddr address){
@@ -426,9 +411,7 @@ vAddr create_page(){
 	else if(freeSpace == -1){
 		if(DEBUG) printf("There is no free space in RAM for this page.\n");
 		evict(RAM);
-printf("before.\n");
 		freeSpace = findFreeMemoryLoc(RAM);
-printf("after.\n");
 	}
 	int i ;
 	for(i = 0 ; i < 1000 ; i++)
@@ -442,7 +425,7 @@ printf("after.\n");
 int *get_value_safe(vAddr address){
 	if(DEBUG) printf("Searching for value at address: %d\n", address);
 	if(pageTable[address].occupied == 0){
-		printf("Page doesn't exist for this address.\n");
+		if(DEBUG) printf("Page doesn't exist for this address.\n");
 		return NULL;
 	}
 	else{
@@ -498,7 +481,6 @@ void store_value(vAddr address, int *value){
 			return;
 		}
 		else{
-			printf("waiting.\n");
 			pthread_cond_wait(&(pageTable[address].condition_variable),&(pageTable[address].lock));
 		}
 	}
@@ -515,7 +497,6 @@ void free_page(vAddr address){
 			return;
 		}
 		else{
-			printf("waiting.\n");
 			pthread_cond_wait(&(pageTable[address].condition_variable),&(pageTable[address].lock));
 		}
 	}
@@ -597,7 +578,7 @@ int main(int argc, char *argv[] ){
 		if(evictType > 2 || evictType < 0) evictType = rand()%3;
 	}else evictType = 0;
 	
-	printf("evicting using %d.\n",evictType);
+	printf("Evicting using %d.\n",evictType);
 	
 	pageCount = 0;
 	
