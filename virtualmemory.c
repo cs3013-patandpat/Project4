@@ -449,6 +449,9 @@ int *get_value_safe(vAddr address){
 }
 
 int *get_value(vAddr address){
+	if(address < 0 || address >= 1000){
+		return NULL
+	}
 	int finished = 0;
 	int *value;
 	while(finished == 0){
@@ -471,6 +474,8 @@ void store_value_safe(vAddr address, int *value){
 }
 
 void store_value(vAddr address, int *value){
+	if(address < 0 || address >= 1000)
+		return;
 	int finished = 0;
 	while(finished == 0){
 		if(pthread_mutex_trylock(&(pageTable[address].lock)) == 0){
