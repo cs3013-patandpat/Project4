@@ -538,6 +538,7 @@ void multithreadedHavoc(){
 	}
 	
 	for(i=0; i<20; i++){
+		if(DEBUG) printf("Spawning literal demon thread\n");
 		int* id = malloc(sizeof(int));
 		*id = i;
 		pthread_create (&(threads[i]),NULL, (void *) &threadCall, id);
@@ -587,7 +588,7 @@ int main(int argc, char *argv[] ){
 	for(i = 0 ; i < 1000 ; i++)
 		setupEmptyPage(i);
 		
-	//memoryMaxer();
+	memoryMaxer();
 	multithreadedHavoc();
 }
 
