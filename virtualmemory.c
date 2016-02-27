@@ -339,7 +339,7 @@ void evict(int memoryType){
 	}
 	if(evictType == 0) 
 		evictOne(memoryType, freeSpace);//first page found is evicted
-	else if(evictType == 1) {s
+	else if(evictType == 1) {
 		evictTwo(memoryType, freeSpace);//randomly pick a page to evict
 }
 	else if(evictType == 2) 
