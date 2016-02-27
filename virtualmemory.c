@@ -512,9 +512,9 @@ void threadCall(int *threadID){
 		*value = rand();
 		store_value(address, value);
 		
-		if(rand()%25)
+		if(rand()%25 == 0)
 			free_page(rand()%1000); //Free random address
-		if(rand()%60)
+		if(rand()%60 == 0)
 			create_page();
 	}
 }
