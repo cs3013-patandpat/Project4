@@ -507,6 +507,7 @@ void free_page(vAddr address){
 void threadCall(int *threadID){
 	int i;
 	for(i=0; i<300; i++){
+		if(DEBUG) printf("Thread %d iteration %d\n",*threadID,i);
 		int address = rand()%1000;
 		int *value = get_value(address);
 		*value = rand();
